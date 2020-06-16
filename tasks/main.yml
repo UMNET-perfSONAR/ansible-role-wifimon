@@ -1,0 +1,20 @@
+---
+# template tasks file
+
+- name: apt install software
+  apt:
+    pkg:
+    - postgresql
+    - postgresql-contrib
+    - phppgadmin
+
+- name: Load variables based on OS type
+  become_user: postgres
+  become: yes
+  become_method: sudo
+  command: id
+  register: id
+
+- name: debug id
+  debug:
+    var: id

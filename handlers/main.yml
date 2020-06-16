@@ -1,0 +1,7 @@
+---
+# template handlers file
+
+#- name: restart ntp
+#  service:
+#    name: "{{ ntp_service | default('ntpd') }}"
+#    state: restarted
