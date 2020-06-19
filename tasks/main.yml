@@ -3,18 +3,23 @@
 
 - name: apt install software
   apt:
+    update_cache: true
     pkg:
     - postgresql
     - postgresql-contrib
-    - phppgadmin
+#    - phppgadmin
+    - libpq-dev
+    - python3-pip
 
-- name: Load variables based on OS type
+- name: install python libraries
+  pip:
+    name: psycopg2
+
+- name: create postgres wifimon user
   become_user: postgres
   become: yes
   become_method: sudo
-  command: id
-  register: id
+  postgresql_user:
+    name: wifimon_user
+    password: "wifmonpass"
 
-- name: debug id
-  debug:
-    var: id
