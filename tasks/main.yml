@@ -7,19 +7,165 @@
     pkg:
     - postgresql
     - postgresql-contrib
-#    - phppgadmin
+    - phppgadmin
     - libpq-dev
     - python3-pip
+  tags: packages
 
 - name: install python libraries
   pip:
     name: psycopg2
+  tags: packages
 
 - name: create postgres wifimon user
   become_user: postgres
   become: yes
-  become_method: sudo
   postgresql_user:
     name: wifimon_user
     password: "wifmonpass"
+  tags: postgresql
+
+- name: Create wifimon database
+  become: yes
+  become_user: postgres
+  postgresql_db:
+    name: wifimon_database
+    owner: wifimon_user
+  tags: postgresql
+
+- name: create subnets table
+  become: yes
+  become_user: postgres
+  postgresql_table: 
+    db: wifimon_database
+    name: subnets
+    columns:
+    - subnet text
+    - subnet_id serial primary key 
+  tags: postgresql
+
+- name: create users table
+  become: yes
+  become_user: postgres
+  postgresql_table: 
+    db: wifimon_database
+    name: users
+    columns:
+    - id serial primary key
+    - email text not null
+    - password_hash text not null
+    - role text not null
+  tags: postgresql
+
+- name: create accesspoints table
+  become: yes
+  become_user: postgres
+  postgresql_table: 
+    db: wifimon_database
+    name: accesspoints
+    columns:
+    - apid serial primary key
+    - mac text not null
+    - latitude text
+    - longitude text
+    - building text
+    - floor text
+    - notes text
+  tags: postgresql
+
+- name: create options table
+  become: yes
+  become_user: postgres
+  postgresql_table: 
+    db: wifimon_database
+    name: options
+    columns:
+    - optionsid serial primary key
+    - userdata text not null
+    - uservisualoption text not null
+    - correlationmethod text not null
+  tags: postgresql
+
+- name: grant database privileges to wifimon_user
+  become: yes
+  become_user: postgres
+  postgresql_privs:
+    db: wifimon_database
+    privs: USAGE
+    type: schema
+    objs: public 
+    roles: wifimon_user
+    grant_option: yes
+  tags: postgresql
+
+- name: grant connect privileges to wifimon_user
+  become: yes
+  become_user: postgres
+  postgresql_privs:
+    db: wifimon_database
+    privs: CONNECT
+    type: database
+    objs: wifimon_database
+    roles: wifimon_user
+    grant_option: yes
+  tags: postgresql
+
+- name: grant edit privileges for tables
+  become: yes
+  become_user: postgres
+  postgresql_privs:
+    db: wifimon_database
+    privs: SELECT,INSERT,DELETE
+    type: table
+    objs: subnets,users,accesspoints,options
+    roles: wifimon_user
+    grant_option: yes
+  tags: postgresql
+
+- name: grant update privileges for tables
+  become: yes
+  become_user: postgres
+  postgresql_privs:
+    db: wifimon_database
+    privs: UPDATE 
+    type: table
+    objs: accesspoints,options
+    roles: wifimon_user
+    grant_option: yes
+  tags: postgresql
+
+- name: Grant usage privileges on sequences
+  become: yes
+  become_user: postgres
+  postgresql_privs:
+    db: wifimon_database
+    privs: USAGE,SELECT
+    type: sequence
+    objs: subnets_subnet_id_seq,users_id_seq
+    roles: wifimon_user
+    grant_option: yes
+  tags: postgresql
+
+- name: Grant update privileges on sequences
+  become: yes
+  become_user: postgres
+  postgresql_privs:
+    db: wifimon_database
+    privs: USAGE,SELECT,UPDATE
+    type: sequence
+    objs: options_optionsid_seq,accesspoints_apid_seq 
+    roles: wifimon_user
+    grant_option: yes
+  tags: postgresql
+
+- name: create postgres admin account
+  become: yes
+  become_user: postgres
+  postgresql_query: 
+    db: wifimon_database
+    query: INSERT INTO users VALUES (%s,%s,%s,'ADMIN')
+    positional_args:
+    - 1
+    - admin@test.com
+    - $2a$06$AnM.QevGa4BPGg7hc3nEBua6stnbZ8h4PrCjSbDxW.LWL7t4MX8vO
 
