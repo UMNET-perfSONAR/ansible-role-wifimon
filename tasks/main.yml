@@ -1,6 +1,19 @@
 ---
 # template tasks file
 
+- name: add java repo key
+  apt_key: 
+    url: https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public
+    state: present
+  tags: Java
+
+- name: add java repo
+  apt_repository:
+    repo: deb https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/ bionic main
+    state: present
+#  command: add-apt-repository --yes https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/
+  tags: java
+
 - name: apt install software
   apt:
     update_cache: true
@@ -10,12 +23,25 @@
     - phppgadmin
     - libpq-dev
     - python3-pip
-  tags: packages
+    - apt-transport-https
+    - ca-certificates
+    - wget
+    - dirmngr
+    - gnupg
+    - software-properties-common
+    - adoptopenjdk-8-hotspot
+  tags: packages, java
 
 - name: install python libraries
   pip:
     name: psycopg2
   tags: packages
+
+- name: set enivronmenet variables
+  lineinfile:
+    path: /etc/environment
+    line: JAVA_HOME="/usr/lib/jvm/adoptopenjdk-8-hotspot-amd64"
+  tags: java
 
 - name: create postgres wifimon user
   become_user: postgres
