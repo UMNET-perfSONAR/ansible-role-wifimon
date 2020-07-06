@@ -187,6 +187,7 @@
 - name: create postgres admin account
   become: yes
   become_user: postgres
+  ignore_errors: yes
   postgresql_query: 
     db: wifimon_database
     query: INSERT INTO users VALUES (%s,%s,%s,'ADMIN')
