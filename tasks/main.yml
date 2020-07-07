@@ -234,12 +234,6 @@
 - name: run elasticsearch.sh
   shell: /usr/lib/wifimon/elasticsearch.sh
 
-#- name: copy index patten json files
-# copy:
-#    src: roles/ansible-role-wifimon/index-patterns/
-#    dest: /usr/lib/wifimon/index-patterns
-#  tags: wifimon
-
 - name: create wifimon index pattern
   ignore_errors: yes
   uri:
