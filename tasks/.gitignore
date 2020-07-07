@@ -1,0 +1,3 @@
+# Ignore vi swap
+*.swp
+*.swo
