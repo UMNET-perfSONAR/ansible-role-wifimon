@@ -11,10 +11,9 @@
   apt_repository:
     repo: deb https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/ bionic main
     state: present
-#  command: add-apt-repository --yes https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/
   tags: java
 
-- name: apt install software
+- name: apt install dependancies
   apt:
     update_cache: true
     pkg:
@@ -30,6 +29,7 @@
     - gnupg
     - software-properties-common
     - adoptopenjdk-8-hotspot
+    - curl
   tags: packages, java
 
 - name: install python libraries
@@ -185,6 +185,7 @@
   tags: postgresql
 
 - name: create postgres admin account
+  ignore_errors: yes
   become: yes
   become_user: postgres
   postgresql_query: 
@@ -195,3 +196,89 @@
     - admin@test.com
     - $2a$06$AnM.QevGa4BPGg7hc3nEBua6stnbZ8h4PrCjSbDxW.LWL7t4MX8vO
 
+- name: install wifimon
+  apt:
+    deb: https://fl-5-205.unil.cloud.switch.ch/wifimon-agent-0.1.1-SNAPSHOT.deb
+  tags: wifimon
+
+- name: rename .war files
+  ignore_errors: yes
+  command: mv /usr/lib/wifimon/secure-processor-0.1.1-SNAPSHOT.war /usr/lib/wifimon/secure-processor-0.1.1.war
+  tags: wifimon 
+
+- name: rename .war files
+  ignore_errors: yes
+  command: mv /usr/lib/wifimon/ui-0.1.1-SNAPSHOT.war /usr/lib/wifimon/ui-0.1.1.war
+  tags: wifimon
+
+- name: change permissions for elasticsearch.sh
+  file: 
+    dest: /usr/lib/wifimon/elasticsearch.sh
+    mode: a+x
+  tags: wifimon
+
+- name: change permissions for start.sh
+  file:
+    dest: /usr/lib/wifimon/start.sh
+    mode: a+x
+  tags: wifimon
+
+- name: configure elasticsearch.sh
+  replace:
+    path: /usr/lib/wifimon/elasticsearch.sh
+    regexp: 'FQDN'
+    replace: "{{ host_name }}"
+  tags: wifimon
+  
+- name: run elasticsearch.sh
+  shell: /usr/lib/wifimon/elasticsearch.sh
+
+#- name: copy index patten json files
+# copy:
+#    src: roles/ansible-role-wifimon/index-patterns/
+#    dest: /usr/lib/wifimon/index-patterns
+#  tags: wifimon
+
+- name: create wifimon index pattern
+  ignore_errors: yes
+  uri:
+    url: http://{{ host_name }}:5601/api/saved_objects/index-pattern/wifimon_v0.1
+    method: POST
+    body: "{{ lookup('file', 'wifimon.json') | to_json }}"
+    body_format: "json"
+    headers:
+      kbn-xsrf: true
+  tags: wifimon
+
+- name: create radius log index pattern
+  ignore_errors: yes
+  uri:
+    url: http://{{ host_name }}:5601/api/saved_objects/index-pattern/radiuslogs_v0.1
+    method: POST
+    body: "{{ lookup('file', 'radiuslogs.json') | to_json }}"
+    body_format: "json"
+    headers:
+      kbn-xsrf: true
+  tags: wifimon
+
+- name: create probes index pattern
+  ignore_errors: yes
+  uri:
+    url: http://{{ host_name }}:5601/api/saved_objects/index-pattern/probes_v0.1
+    method: POST
+    body: "{{ lookup('file', 'probes.json') | to_json }}"
+    body_format: "json"
+    headers:
+      kbn-xsrf: true
+  tags: wifimon
+
+- name: create dhcplogs index pattern
+  ignore_errors: yes
+  uri:
+    url: http://{{ host_name }}:5601/api/saved_objects/index-pattern/dhcplogs_v0.1
+    method: POST
+    body: "{{ lookup('file', 'dhcplogs.json') | to_json }}"
+    body_format: "json"
+    headers:
+      kbn-xsrf: true
+  tags: wifimon
