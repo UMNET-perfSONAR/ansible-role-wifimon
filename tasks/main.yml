@@ -48,7 +48,7 @@
   become: yes
   postgresql_user:
     name: wifimon_user
-    password: "wifmonpass"
+    password: wifimonpass
   tags: postgresql
 
 - name: Create wifimon database
@@ -196,7 +196,7 @@
     - 1
     - admin@test.com
     - $2a$06$AnM.QevGa4BPGg7hc3nEBua6stnbZ8h4PrCjSbDxW.LWL7t4MX8vO
-
+      
 - name: install wifimon
   apt:
     deb: https://fl-5-205.unil.cloud.switch.ch/wifimon-agent-0.1.1-SNAPSHOT.deb
@@ -277,3 +277,111 @@
     headers:
       kbn-xsrf: true
   tags: wifimon
+
+- name: import kibana visualizations
+  ignore_errors: yes
+  command: "curl -X POST \"{{ host_name }}:5601/api/saved_objects/_import\" -H \"kbn-xsrf: true\" --form file=\"@/usr/lib/wifimon/kibana-import.ndjson\""
+  tags: wifimon
+
+- name: edit port secure-processor.properties file
+  lineinfile:
+    path: /usr/lib/wifimon/config/secure-processor.properties
+    regexp: 'server\.port='
+    line: server.port=9000
+  tags: wifimon
+
+- name: edit postgress secure-processor file
+  lineinfile:
+    path: /usr/lib/wifimon/config/secure-processor.properties
+    regexp: 'spring\.datasource\.url='
+    insertafter: 'spring\.datasource\.url='
+    firstmatch: yes
+    line: spring.datasource.url=jdbc:postgresql://localhost:5432/wifimon_database
+  tags: wifimon
+
+- name: edit postgress secure-processor file
+  lineinfile:
+    path: /usr/lib/wifimon/config/secure-processor.properties
+    regexp: 'spring\.datasource\.username='
+    insertafter: 'spring\.datasource\.username='
+    line: spring.datasource.url={{ wifimon_user }}
+  tags: wifimon
+
+- name: edit postgress secure-processor file
+  lineinfile:
+    path: /usr/lib/wifimon/config/secure-processor.properties
+    regexp: 'spring\.datasource\.password='
+    line: spring.datasource.url={{ wifimon_pass }}
+  tags: wifimon
+
+- name: edit elasticsearch secure-processor file
+  lineinfile:
+    path: /usr/lib/wifimon/config/secure-processor.properties
+    regexp: 'elasticsearch\.clustername='
+    insertafter: 'elasticsearch\.clustername='
+    firstmatch: yes
+    line: elasticsearch.clustername=elasticsearch
+  tags: wifimon
+
+- name: edit elasticsearch secure-processor file
+  lineinfile:
+    path: /usr/lib/wifimon/config/secure-processor.properties
+    regexp: 'elasticsearch\.host='
+    line: elasticsearch.host={{ host_name }}
+  tags: wifimon
+
+- name: edit sha key  secure-processor file
+  lineinfile:
+    path: /usr/lib/wifimon/config/secure-processor.properties
+    regexp: 'sha\.key='
+    line: sha.key={{ sha_key }}
+  tags: wifimon
+
+- name: edit postgress ui.properties file
+  lineinfile:
+    path: /usr/lib/wifimon/config/ui.properties
+    regexp: 'spring\.datasource\.url='
+    insertafter: 'spring\.datasource\.url='
+    firstmatch: yes
+    line: spring.datasource.url=jdbc:postgresql://localhost:5432/wifimon_database
+  tags: wifimon
+
+- name: edit postgress ui.properties file
+  lineinfile:
+    path: /usr/lib/wifimon/config/ui.properties
+    regexp: 'spring\.datasource\.username='
+    line: spring.datasource.url={{ wifimon_user }}
+  tags: wifimon
+
+- name: edit postgress ui.properties file
+  lineinfile:
+    path: /usr/lib/wifimon/config/ui.properties
+    regexp: 'spring\.datasource\.password='
+    line: spring.datasource.url={{ wifimon_pass }}
+  tags: wifimon
+
+- name: edit kibana ui.properties file
+  lineinfile:
+    path: /usr/lib/wifimon/config/ui.properties
+    regexp: 'server\.host\.name='
+    line: server.host.name={{ host_name }}
+  tags: wifimon
+
+- name: edit kibana ui.properties file
+  lineinfile:
+    path: /usr/lib/wifimon/config/ui.properties
+    regexp: 'kibana\.protocol='
+    line: kibana.protocol=http
+  tags: wifimon
+
+- name: edit kibana port ui.properties  file
+  lineinfile:
+    path: /usr/lib/wifimon/config/ui.properties
+    regexp: 'kibana\.port='
+    insertafter: 'kibana\.port='
+    firstmatch: yes
+    line: kibana.port=5601 
+  tags: wifimon
+
+- name: start wifimon agent
+  shell: /usr/lib/wifimon/start.sh
