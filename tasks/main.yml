@@ -197,21 +197,6 @@
     - admin@test.com
     - $2a$06$AnM.QevGa4BPGg7hc3nEBua6stnbZ8h4PrCjSbDxW.LWL7t4MX8vO
       
-- name: install wifimon
-  apt:
-    deb: https://fl-5-205.unil.cloud.switch.ch/wifimon-agent-0.1.1-SNAPSHOT.deb
-  tags: wifimon
-
-- name: rename .war files
-  ignore_errors: yes
-  command: mv /usr/lib/wifimon/secure-processor-0.1.1-SNAPSHOT.war /usr/lib/wifimon/secure-processor-0.1.1.war
-  tags: wifimon 
-
-- name: rename .war files
-  ignore_errors: yes
-  command: mv /usr/lib/wifimon/ui-0.1.1-SNAPSHOT.war /usr/lib/wifimon/ui-0.1.1.war
-  tags: wifimon
-
 - name: change permissions for elasticsearch.sh
   file: 
     dest: /usr/lib/wifimon/elasticsearch.sh
