@@ -289,14 +289,14 @@
     path: /usr/lib/wifimon/config/secure-processor.properties
     regexp: 'spring\.datasource\.username='
     insertafter: 'spring\.datasource\.username='
-    line: spring.datasource.url={{ wifimon_user }}
+    line: spring.datasource.username={{ wifimon_user }}
   tags: wifimon
 
 - name: edit postgress secure-processor file
   lineinfile:
     path: /usr/lib/wifimon/config/secure-processor.properties
     regexp: 'spring\.datasource\.password='
-    line: spring.datasource.url={{ wifimon_pass }}
+    line: spring.datasource.password={{ wifimon_pass }}
   tags: wifimon
 
 - name: edit elasticsearch secure-processor file
@@ -335,14 +335,14 @@
   lineinfile:
     path: /usr/lib/wifimon/config/ui.properties
     regexp: 'spring\.datasource\.username='
-    line: spring.datasource.url={{ wifimon_user }}
+    line: spring.datasource.username={{ wifimon_user }}
   tags: wifimon
 
 - name: edit postgress ui.properties file
   lineinfile:
     path: /usr/lib/wifimon/config/ui.properties
     regexp: 'spring\.datasource\.password='
-    line: spring.datasource.url={{ wifimon_pass }}
+    line: spring.datasource.password={{ wifimon_pass }}
   tags: wifimon
 
 - name: edit kibana ui.properties file
@@ -369,4 +369,6 @@
   tags: wifimon
 
 - name: start wifimon agent
-  shell: /usr/lib/wifimon/start.sh
+  shell:
+    cmd: ./start.sh
+    chdir: /usr/lib/wifimon
