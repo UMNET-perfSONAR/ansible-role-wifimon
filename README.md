@@ -1,2 +1,2 @@
 # ansible-role-wifimon
-Basic template for developing Ansible Wifimon Roles
+Role for automated installation of the entire WifiMon server machine
